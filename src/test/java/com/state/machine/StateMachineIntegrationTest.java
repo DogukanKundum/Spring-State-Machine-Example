@@ -34,7 +34,8 @@ public class StateMachineIntegrationTest {
     }
     @Test
     public void whenSimpleStringMachineActionState_thenActionExecuted() throws InterruptedException {
-
+        stateMachine.sendEvent(Events.E1);
+        stateMachine.sendEvent(Events.E2);
     }
 
     @After

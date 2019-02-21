@@ -28,7 +28,6 @@ public class Application implements CommandLineRunner {
 		// In our case, this is used to indicate that the bean stateMachine, contained within the
 		// spring application should be executed the following way.
 		stateMachine.sendEvent(Events.E1);
-		stateMachine.sendEvent(Events.ENTRY);
-		stateMachine.sendEvent(Events.EXIT);
+		stateMachine.sendEvent(Events.E2);
 	}
 }

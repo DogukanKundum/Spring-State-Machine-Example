@@ -5,6 +5,7 @@ import com.state.machine.review.Events;
 import com.state.machine.review.States;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachine;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
@@ -23,23 +24,102 @@ import java.util.logging.Logger;
 public class SubStateMachineConfiguration extends StateMachineConfigurerAdapter<States, Events> {
 
     public static final Logger LOGGER = Logger.getLogger(SubStateMachineConfiguration.class.getName());
-/*
-    @Override
-    public void configure(StateMachineConfigurationConfigurer<States, Events> config)
-            throws Exception {
-        config
-                .withConfiguration()
-                .autoStartup(true)
-                .listener(listener());
-    }
+/**
+ * Basic Example
 
+ @Override public void configure(StateMachineConfigurationConfigurer<States, Events> config)
+ throws Exception {
+ config
+ .withConfiguration()
+ .autoStartup(true)
+ .listener(listener());
+ }
+
+ @Override public void configure(StateMachineStateConfigurer<States, Events> states)
+ throws Exception {
+ states
+ .withStates()
+ .initial(States.SI)
+ .states(EnumSet.allOf(States.class));
+ }
+
+ @Override public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
+ throws Exception {
+ transitions
+ .withExternal()
+ .source(States.SI).target(States.S1).event(Events.E1)
+ .and()
+ .withExternal()
+ .source(States.S1).target(States.S2).event(Events.E2);
+ }
+
+ @Bean public StateMachineListener<States, Events> listener() {
+ return new StateMachineListenerAdapter<States, Events>() {
+ @Override public void stateChanged(State<States, Events> from, State<States, Events> to) {
+ System.out.println("State change to " + to.getId());
+ }
+ };
+ }
+ */
+
+
+    /** Basic Timer Action Test
+     * @Override public void configure(StateMachineStateConfigurer<States, Events> states)
+     * throws Exception {
+     * states
+     * .withStates()
+     * .initial(States.S1)
+     * .state(States.S2)
+     * .state(States.S3);
+     * }
+     * @Override public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
+     * throws Exception {
+     * transitions
+     * .withExternal()
+     * .source(States.S1).target(States.S2).event(Events.E1)
+     * .and()
+     * .withExternal()
+     * .source(States.S1).target(States.S3).event(Events.E2)
+     * .and()
+     * .withInternal()
+     * .source(States.S2)
+     * .action(timerAction())
+     * .timer(1000)
+     * .and()
+     * .withInternal()
+     * .source(States.S3)
+     * .action(timerAction())
+     * .timerOnce(1000);
+     * }
+     * @Bean public TimerAction timerAction() {
+     * return new TimerAction();
+     * }
+     * <p>
+     * <p>
+     * public class TimerAction implements Action<States, Events> {
+     * @Override public void execute(StateContext<States, Events> context) {
+     * // do something in every 1 sec
+     * LOGGER.info("Timer Action Tests.");
+     * }
+     * }
+     */
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states)
             throws Exception {
         states
                 .withStates()
-                .initial(States.SI)
-                .states(EnumSet.allOf(States.class));
+                .initial(States.S1)
+                .state(States.S2)
+                .state(States.S3)
+
+                .and()
+
+                .withStates()
+                .parent(States.S2)
+                .initial(States.S21)
+                .entry(States.S2ENTRY)
+                .exit(States.S2EXIT)
+                .state(States.S22);
     }
 
     @Override
@@ -47,70 +127,30 @@ public class SubStateMachineConfiguration extends StateMachineConfigurerAdapter<
             throws Exception {
         transitions
                 .withExternal()
-                .source(States.SI).target(States.S1).event(Events.E1)
-                .and()
-                .withExternal()
-                .source(States.S1).target(States.S2).event(Events.E2);
-    }
-
-    @Bean
-    public StateMachineListener<States, Events> listener() {
-        return new StateMachineListenerAdapter<States, Events>() {
-            @Override
-            public void stateChanged(State<States, Events> from, State<States, Events> to) {
-                System.out.println("State change to " + to.getId());
-            }
-        };
-    }
-*/
-    @Override
-    public void configure(StateMachineStateConfigurer<States, Events> states)
-            throws Exception {
-        states
-                .withStates()
-                    .initial(States.S1)
-                    .state(States.S2)
-                    .state(States.S3)
-
-                .and()
-
-                .withStates()
-                    .parent(States.S2)
-                    .initial(States.S21)
-                    .entry(States.S2ENTRY)
-                    .exit(States.S2EXIT)
-                    .state(States.S22);
-    }
-
-    @Override
-    public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
-            throws Exception {
-        transitions
-                .withExternal()
-                    .source(States.S1).target(States.S2)
-                    .event(Events.E1)
+                .source(States.S1).target(States.S2)
+                .event(Events.E1)
 
                 .and()
 
                 .withExternal()
-                    .source(States.S2).target(States.S2ENTRY)
-                    .event(Events.ENTRY)
+                .source(States.S2).target(States.S2ENTRY)
+                .event(Events.ENTRY)
 
                 .and()
 
                 .withExternal()
-                    .source(States.S22).target(States.S2EXIT)
-                    .event(Events.EXIT)
+                .source(States.S22).target(States.S2EXIT)
+                .event(Events.EXIT)
 
                 .and()
 
-                    .withEntry()
-                    .source(States.S2ENTRY).target(States.S22)
+                .withEntry()
+                .source(States.S2ENTRY).target(States.S22)
 
                 .and()
 
-                    .withExit()
-                    .source(States.S2EXIT).target(States.S3);
+                .withExit()
+                .source(States.S2EXIT).target(States.S3);
     }
 
     @Override
