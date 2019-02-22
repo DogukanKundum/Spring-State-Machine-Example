@@ -2,5 +2,5 @@
 
 This project is submachine example. 
 
-#credits: 
+#owner: 
 Dogukan Kundum
