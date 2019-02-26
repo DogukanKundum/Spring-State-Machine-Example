@@ -33,7 +33,7 @@ public class StateMachineIntegrationTest {
 //        assertEquals(States.SI, stateMachine.getState().getId());
     }
     @Test
-    public void whenSimpleStringMachineActionState_thenActionExecuted() throws InterruptedException {
+    public void whenSimpleStringMachineActionState_thenActionExecuted() {
 //        stateMachine.sendEvent(Events.E1);
 //        stateMachine.sendEvent(Events.E2);
     }

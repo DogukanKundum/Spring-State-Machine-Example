@@ -18,7 +18,7 @@ import org.springframework.statemachine.transition.Transition;
 @Slf4j
 public class MachineListener implements StateMachineListener<States, Events> {
 
-    protected Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void stateChanged(State<States, Events> from, State<States, Events> to) {
@@ -80,15 +80,8 @@ public class MachineListener implements StateMachineListener<States, Events> {
         LOGGER.info("stateContext: [{}: {}]", stateContext.getStateMachine().getId(), stateContext.getStateMachine().getState());
     }
 
-    public static String getStateInfo(State<States, Events> state) {
+    private static String getStateInfo(State<States, Events> state) {
         return state != null ? state.getId().name() : "EMPTY STATE";
-    }
-
-    public static String getTransitionInfo(Transition<States, Events> t) {
-        return String.format("[%s: %s]",
-                             t.getSource() != null ? t.getSource().getId() : "EMPTY",
-                             t.getTarget() != null ? t.getTarget().getId() : "EMPTY"
-        );
     }
 
 }

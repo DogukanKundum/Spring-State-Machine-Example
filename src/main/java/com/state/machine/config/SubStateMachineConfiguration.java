@@ -5,7 +5,6 @@ import com.state.machine.review.Events;
 import com.state.machine.review.States;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachine;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
@@ -14,7 +13,6 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 import org.springframework.statemachine.guard.Guard;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -24,7 +22,7 @@ import java.util.logging.Logger;
 @EnableStateMachine
 public class SubStateMachineConfiguration extends StateMachineConfigurerAdapter<States, Events> {
 
-    public static final Logger LOGGER = Logger.getLogger(SubStateMachineConfiguration.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SubStateMachineConfiguration.class.getName());
 
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states)
@@ -86,25 +84,13 @@ public class SubStateMachineConfiguration extends StateMachineConfigurerAdapter<
 
     @Bean
     public Action<States, Events> test() {
-        return new Action<States, Events>() {
-            @Override
-            public void execute(StateContext<States, Events> context) {
-                context.getStateMachine().sendEvent(Events.ENABLED);
-                return;
-            }
-        };
+        return context -> context.getStateMachine().sendEvent(Events.ENABLED);
     }
 
 
     @Bean
     public Guard<States, Events> PreprovisionedGuard() {
-        return new Guard<States, Events>() {
-
-            @Override
-            public boolean evaluate(StateContext<States, Events> context) {
-                return context.getExtendedState().getVariables().containsKey("deviceAdded");
-            }
-        };
+        return context -> context.getExtendedState().getVariables().containsKey("deviceAdded");
     }
 
     @Override
