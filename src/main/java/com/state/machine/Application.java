@@ -27,7 +27,6 @@ public class Application implements CommandLineRunner {
 	public void run(String... strings) throws Exception {
 		// In our case, this is used to indicate that the bean stateMachine, contained within the
 		// spring application should be executed the following way.
-		stateMachine.sendEvent(Events.E1);
-		stateMachine.sendEvent(Events.E2);
+		stateMachine.sendEvent(Events.ENABLED);
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 import org.springframework.statemachine.guard.Guard;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -24,133 +25,86 @@ import java.util.logging.Logger;
 public class SubStateMachineConfiguration extends StateMachineConfigurerAdapter<States, Events> {
 
     public static final Logger LOGGER = Logger.getLogger(SubStateMachineConfiguration.class.getName());
-/**
- * Basic Example
 
- @Override public void configure(StateMachineConfigurationConfigurer<States, Events> config)
- throws Exception {
- config
- .withConfiguration()
- .autoStartup(true)
- .listener(listener());
- }
-
- @Override public void configure(StateMachineStateConfigurer<States, Events> states)
- throws Exception {
- states
- .withStates()
- .initial(States.SI)
- .states(EnumSet.allOf(States.class));
- }
-
- @Override public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
- throws Exception {
- transitions
- .withExternal()
- .source(States.SI).target(States.S1).event(Events.E1)
- .and()
- .withExternal()
- .source(States.S1).target(States.S2).event(Events.E2);
- }
-
- @Bean public StateMachineListener<States, Events> listener() {
- return new StateMachineListenerAdapter<States, Events>() {
- @Override public void stateChanged(State<States, Events> from, State<States, Events> to) {
- System.out.println("State change to " + to.getId());
- }
- };
- }
- */
-
-
-    /** Basic Timer Action Test
-     * @Override public void configure(StateMachineStateConfigurer<States, Events> states)
-     * throws Exception {
-     * states
-     * .withStates()
-     * .initial(States.S1)
-     * .state(States.S2)
-     * .state(States.S3);
-     * }
-     * @Override public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
-     * throws Exception {
-     * transitions
-     * .withExternal()
-     * .source(States.S1).target(States.S2).event(Events.E1)
-     * .and()
-     * .withExternal()
-     * .source(States.S1).target(States.S3).event(Events.E2)
-     * .and()
-     * .withInternal()
-     * .source(States.S2)
-     * .action(timerAction())
-     * .timer(1000)
-     * .and()
-     * .withInternal()
-     * .source(States.S3)
-     * .action(timerAction())
-     * .timerOnce(1000);
-     * }
-     * @Bean public TimerAction timerAction() {
-     * return new TimerAction();
-     * }
-     * <p>
-     * <p>
-     * public class TimerAction implements Action<States, Events> {
-     * @Override public void execute(StateContext<States, Events> context) {
-     * // do something in every 1 sec
-     * LOGGER.info("Timer Action Tests.");
-     * }
-     * }
-     */
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states)
             throws Exception {
-        states
-                .withStates()
-                .initial(States.S1)
-                .state(States.S2)
-                .state(States.S3)
-
+        states.withStates()
+                .initial(States.INITIAL)
+                .state(States.STARTED)
+                .state(States.PREPROVISIONED)
                 .and()
-
                 .withStates()
-                .parent(States.S2)
-                .initial(States.S21)
-                .entry(States.S2ENTRY)
-                .exit(States.S2EXIT)
-                .state(States.S22);
+                    .parent(States.INITIAL)
+                    .initial(States.SAVED)
+                    .state(States.SAVED)
+                .and()
+                .withStates()
+                .state(States.ENABLED)
+                .state(States.ACTIVATED)
+                .state(States.ONOS_READY)
+                .choice(States.ADD_CHOICE)
+                .end(States.DONE);
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
-            throws Exception {
+    public void configure(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(States.S1).target(States.S2)
-                .event(Events.E1)
+                .source(States.INITIAL)
+                .target(States.STARTED)
+                .event(Events.REQUEST_RECEIVED)
 
                 .and()
 
                 .withExternal()
-                .source(States.S2).target(States.S2ENTRY)
-                .event(Events.ENTRY)
+                .source(States.STARTED)
+                .target(States.ADD_CHOICE)
+                .event(Events.PREPROVISIONED)
+
+                .and()
+
+                .withChoice()
+                .source(States.ADD_CHOICE)
+                .first(States.PREPROVISIONED, PreprovisionedGuard())
 
                 .and()
 
                 .withExternal()
-                .source(States.S22).target(States.S2EXIT)
-                .event(Events.EXIT)
+                .source(States.PREPROVISIONED)
+                .target(States.SAVED)
+                .event(Events.SAVED)
 
                 .and()
 
-                .withEntry()
-                .source(States.S2ENTRY).target(States.S22)
+                .withExternal()
+                .source(States.SAVED)
+                .target(States.ENABLED)
+                .event(Events.ENABLED);
 
-                .and()
+    }
 
-                .withExit()
-                .source(States.S2EXIT).target(States.S3);
+    @Bean
+    public Action<States, Events> test() {
+        return new Action<States, Events>() {
+            @Override
+            public void execute(StateContext<States, Events> context) {
+                context.getStateMachine().sendEvent(Events.ENABLED);
+                return;
+            }
+        };
+    }
+
+
+    @Bean
+    public Guard<States, Events> PreprovisionedGuard() {
+        return new Guard<States, Events>() {
+
+            @Override
+            public boolean evaluate(StateContext<States, Events> context) {
+                return context.getExtendedState().getVariables().containsKey("deviceAdded");
+            }
+        };
     }
 
     @Override
